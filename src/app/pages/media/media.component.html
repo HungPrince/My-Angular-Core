@@ -1,0 +1,185 @@
+<form (ngSubmit)="onSearch()" class="row">
+        <div class="form-group col-5">
+            <label class="form-control-label">Search</label>
+            <input placeholder="Enter keyword ..." [(ngModel)]="keyWord" name="keyWord" class="form-control" type="text">
+        </div>
+        <div class="form-group col-1 mt-4">
+            <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
+        </div>
+</form>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div widget class="card border-0 box-shadow">
+            <div class="card-header transparent border-0 text-muted">
+                <div class="col-12 pl-0 pr-0">
+                    <div class="row">
+                        <div class="col-6">
+                            <h5 class="mb-0">List Files</h5>
+                        </div>
+                        <div class="col-6" *ngIf="hasChecked">
+                            <button title="Delete checked" (click)="onOpenModalDelete(true)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash mr-5 ml-5"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body pt-0 widget-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">No.</th>
+                            <th scope="col">
+                                <div class="custom-control custom-checkbox">
+                                    <input (change)="onChangeSelectAll()" ([ngModel])="isCheckedAll" type="checkbox" class="custom-control-input" id="checkboxAll" [checked]="isCheckedAll">
+                                    <label class="custom-control-label" for="checkboxAll">All</label>
+                                </div>
+                            </th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Size</th>
+                            <th scope="col">Content</th>
+                            <th scope="col" class="text-center"><button (click)="onOpenModalUpload()" class="btn btn-sm btn-primary"><i class="fa fa-plus mr-3 ml-3"></i></button></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let entity of listFiles | paginate: { id: 'entity',
+                            itemsPerPage: pageSize,
+                            currentPage: pageIndex,
+                            totalItems: totalItems }; let entityIndex = index">
+                            <td>{{entityIndex + 1}}</td>
+                            <td>
+                                <div class="custom-control custom-checkbox pl-0">
+                                    <input (change)="onChangeChecked(entity)" type="checkbox" class="checkbox-primary" id="checkbox-{{entity.id}}" [checked]="entity.checked">
+                                </div>
+                            </td>
+                            <td>{{entity.name}}</td>
+                            <td>{{(entity.size / 1000)}} KB</td>
+                            <td>{{entity.content}}</td>
+                            <td class="text-center">
+                                <button (click)="onViewFile(entity)" class="btn btn-sm btn-primary mr-2"><i class="fa fa-eye"></i></button>
+                                <button (click)="onOpenModalDelete(false,entity)" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <pagination-controls
+                    id="entity"
+                    (pageChange)="onPageChanged($event)"
+                    maxSize="9"
+                    directionLinks="true"
+                    autoHide="true"
+                    responsive="true"
+                    previousLabel="Previous"
+                    nextLabel="Next"
+                    screenReaderPaginationLabel="Pagination"
+                    screenReaderPageLabel="page"
+                    screenReaderCurrentLabel="You're on page">
+                </pagination-controls>
+            </div>
+        </div>
+    </div>
+</div>
+<ng-template #modalUpload>
+    <div class="modal-header">
+        <h4>{{titleModal}}</h4>
+        <button type="button" class="close" aria-label="Close" (click)="entityModal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="col-12 mt-2" *ngIf="progress > 0 && 100 > progress">
+        <ngb-progressbar showValue="true" type="success" [value]="progress"></ngb-progressbar>
+    </div>
+    <div class="modal-body">
+        <div class="form-group">
+            <div class="input-group file-upload">
+                <input multiple type="file" (change)="onFileChange(input)" #input class="file-upload-btn"/>
+                <input type="text" class="form-control" placeholder="Choose a file..." value="{{files.length}}">
+                <i class="fa fa-times delete-file" *ngIf="files"></i>
+                <span class="input-group-append">
+                    <button class="btn btn-primary" type="button" (click)="onUpload()"><i class="fa fa-upload"></i></button>
+                </span>
+            </div>
+        </div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">No.</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Size</th>
+                    <th scope="col">Content</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let entity of files; let entityIndex = index">
+                    <th scope="row">{{entityIndex + 1}}</th>
+                    <td>{{entity.name}}</td>
+                    <td>{{(entity.size / 1000)}} KB</td>
+                    <td>{{entity.content}}</td>
+                    <td>
+                        <button (click)="onDeleteFile(entityIndex)" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="modal-footer">
+        <div class="row col-12 pl-0 mr-0 mb-2">
+            <div class="col-6">
+                <button type="button" class="btn btn-success pull-left" (click)="entityModal.dismiss()"><i class="fa fa-arrow-circle-o-left pd-2"></i></button>
+            </div>
+            <div class="col-6">
+                <button type="button" (click)="onUpload()" [disabled]="!files.length" class="btn btn-primary pull-right"><i class="fa fa-check"></i></button>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #modalDelete>
+    <div class="modal-header">
+        <h4 style="width:100%">{{FORM_CONSTANT.TITLE_DELETE}}</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modalDeleteRef.dismiss()">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body text-center">
+        <h5>{{isDeleteMany ? FORM_CONSTANT.CONFIRM_DELETE_MSG_MANY : FORM_CONSTANT.CONFIRM_DELETE_MSG}}</h5>
+    </div>
+    <div class="modal-footer">
+        <div class="row col-12 pl-0 mr-0 mb-2">
+        <div class="col-6">
+            <button type="button" class="btn btn-success pull-left" (click)="modalDeleteRef.dismiss()"><i class="fa fa-arrow-circle-o-left pd-2"></i></button>
+        </div>
+        <div class="col-6">
+            <button type="button" class="btn btn-danger pull-right" (click)="onDelete()"><i class="fa fa-trash"></i></button>
+        </div>
+        </div>
+    </div>
+</ng-template>
+
+
+<ng-template #modalViewImage>
+    <div class="modal-header">
+        <h4 style="width:100%">Xem chi tiết ảnh</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modalViewImageRef.dismiss()">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <img style="width:100%; height: 100%" [src]="urlImage" alt="">
+    </div>
+    <div class="modal-footer">
+        <div class="row col-12 pl-0 mr-0 mb-2">
+            <div class="col-6">
+                <button type="button" class="btn btn-success pull-left" (click)="modalViewImageRef.dismiss()"><i class="fa fa-arrow-circle-o-left pd-2"></i></button>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+
+
+
+
+
+
+

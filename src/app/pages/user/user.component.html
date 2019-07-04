@@ -1,0 +1,125 @@
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th scope="col">No.</th>
+      <th scope="col">UserName</th>
+	  <th scope="col">FullName</th>
+	  <th scope="col">Role</th>
+      <th scope="col"><button (click)="onOpenModalAddEdit()" class="btn btn-sm btn-primary"><i class="fa fa-plus mr-3 ml-3"></i></button></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let entity of listUsers; let entityIndex = index">
+      <th scope="row">{{entityIndex + 1}}</th>
+      <td>{{entity.username}}</td>
+	  <td>{{entity.fullname}}</td>
+	  <td>{{entity.role?.name}}</td>
+      <td>
+        <button (click)="onOpenModalAddEdit(entity)" class="btn btn-sm btn-primary mr-2"><i class="fa fa-pencil"></i></button>
+        <button (click)="onOpenModalDelete(entity)" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<pagination-controls  id="entity"
+                      (pageChange)="onPageChanged($event)"
+                      maxSize="9"
+                      directionLinks="true"
+                      autoHide="true"
+                      responsive="true"
+                      previousLabel="Previous"
+                      nextLabel="Next"
+                      screenReaderPaginationLabel="Pagination"
+                      screenReaderPageLabel="page"
+                      screenReaderCurrentLabel="You're on page">
+</pagination-controls>
+
+
+<ng-template #modalAddEdit>
+    <div class="modal-header">
+        <h4 style="width:100%">{{titleModal}}</h4>
+        <button type="button" class="close" aria-label="Close" (click)="entityModal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+		<form [formGroup]="entityForm" (ngSubmit)="entityForm.valid ? onSave() : ''">
+			<div class="row">
+				<div class="form-group col-12">
+					<label class="form-control-label">Username <small class="text-danger">*</small></label>
+					<div class="input-group">
+						<input formControlName="username" class="form-control" type="text">
+					</div>
+					<small class="text-danger" *ngIf="isErrorRequired('username')">{{FORM_CONSTANT.REQUIRED}}</small>  
+				</div> 
+				<div class="form-group col-12">
+					<label class="form-control-label">Fullname <small class="text-danger">*</small></label>
+					<div class="input-group">
+						<input formControlName="fullname" class="form-control" type="text">
+					</div>
+					<small class="text-danger" *ngIf="isErrorRequired('fullname')">{{FORM_CONSTANT.REQUIRED}}</small>  
+				</div> 
+				<div class="form-group col-12">
+					<label class="form-control-label">Role <small class="text-danger">*</small></label>
+					<ng-select [placeholder]="FORM_CONSTANT.SELECT_PLACEHOLDER" formControlName="roleId" [items]="listRoles" bindValue="id" bindLabel="name"></ng-select>
+					<small class="text-danger" *ngIf="isErrorRequired('roleId')">{{FORM_CONSTANT.REQUIRED}}</small>  
+				</div> 
+				<div class="col-12" *ngIf="titleModal == 'Thêm mới'">
+					<div class="row">
+						<div class="form-group col-6">
+							<label class="form-control-label">Password *</label>
+							<div class="input-group">
+								<input  formControlName="password"  class="form-control" type="password" />
+							</div>     
+							<small class="text-danger" *ngIf="isErrorRequired('password')">{{FORM_CONSTANT.REQUIRED}}</small>  
+						</div> 
+						<div class="form-group col-6">
+							<label class="form-control-label">Confirm password *</label>
+							<div class="input-group">
+								<input  formControlName="confirmPassword"  class="form-control" type="password" />
+							</div>     
+							<small class="text-danger" *ngIf="isErrorRequired('confirmPassword')">{{FORM_CONSTANT.REQUIRED}}</small>  
+							<small class="text-danger" *ngIf="isErrorPasswordPattern('confirmPassword')">{{FORM_CONSTANT.ERROR_CONFIRM_PASSWORD}}</small> 
+						</div> 
+					</div>
+				</div>
+			</div>
+		</form>           
+    </div>
+    <div class="modal-footer">
+        <div class="row col-12 pl-0 mr-0 mb-2">
+            <div class="col-6">
+                <button type="button" class="btn btn-success pull-left" (click)="entityModal.dismiss()"><i class="fa fa-arrow-circle-o-left pd-2"></i></button>
+            </div>
+            <div class="col-6">
+                <button type="submit" (click)="onSave()" [disabled]="entityForm.invalid" class="btn btn-primary pull-right"><i class="fa fa-check"></i></button>
+            </div>
+        </div>
+    </div>
+  </ng-template>
+  
+  <ng-template #modalDelete>
+    <div class="modal-header">
+      <h4 style="width:100%">{{FORM_CONSTANT.TITLE_DELETE}}</h4>
+      <button type="button" class="close" aria-label="Close" (click)="modalDeleteRef.dismiss()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body text-center">
+      <h5>{{FORM_CONSTANT.CONFIRM_DELETE_MSG}}</h5>
+    </div>
+    <div class="modal-footer">
+      <div class="row col-12 pl-0 mr-0 mb-2">
+        <div class="col-6">
+          <button type="button" class="btn btn-success pull-left" (click)="modalDeleteRef.dismiss()"><i class="fa fa-arrow-circle-o-left pd-2"></i></button>
+        </div>
+        <div class="col-6">
+          <button type="button" class="btn btn-danger pull-right" (click)="onDelete()"><i class="fa fa-trash"></i></button>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+      
+  
+  

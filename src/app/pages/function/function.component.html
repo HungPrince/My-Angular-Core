@@ -1,0 +1,226 @@
+<table class="table table-bordered">
+    <thead>
+      <tr>
+        <th scope="col">No.</th>
+        <th scope="col">Function</th>
+        <th scope="col">Role</th>
+        <th scope="col"><button (click)="onOpenModalAddEdit()" class="btn btn-sm btn-primary"><i class="fa fa-plus mr-3 ml-3"></i></button></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let entity of listFunctions; let entityIndex = index" [ngClass]="entity.expanded?'': 'row-child'">
+        <td scope="row">{{entityIndex + 1}}</td>
+        <td style="padding-left:20px" (click)="clickRow()">
+            <div [ngStyle]="{'margin-left':entity?.level + 'px'}">
+                <i *ngIf="entity.children" [ngClass]="entity.parentExpanded?'fa fa-caret-down':'fa fa-caret-right'" (click)="onExpanded(entity)"
+                    style="cursor:pointer"></i> {{entity.title}}
+            </div>
+        </td>
+        <td>
+          <ng-container *ngFor="let role of entity.roles; let roleIndex = index">
+            {{role.name}} <span *ngIf="entity.roles.length-1 != roleIndex">| </span>
+          </ng-container>
+        </td>
+        <td>
+          <button (click)="onOpenModalPermission(entity)" class="btn btn-sm btn-primary mr-2"><i class="fa fa-lock"></i></button>
+          <button (click)="onOpenModalAddEdit(entity)" class="btn btn-sm btn-primary mr-2"><i class="fa fa-pencil"></i></button>
+          <button (click)="onOpenModalDelete(entity)" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+<ng-template #modalAddEdit>
+  <div class="modal-header">
+      <h4 style="width:100%">{{titleModal}}</h4>
+      <button type="button" class="close" aria-label="Close" (click)="entityModal.dismiss()">
+          <span aria-hidden="true">&times;</span>
+      </button>
+  </div>
+  <div class="modal-body">
+    <form [formGroup]="entityForm" (ngSubmit)="entityForm.valid ? onSave() : ''">
+        <div class="row">
+			<div class="col-6">
+				<div class="form-group">
+					<label class="form-control-label">Id<small class="text-danger"> *</small></label>
+					<div class="input-group">
+						<input formControlName="id" class="form-control" type="text">
+					</div>
+					<small class="text-danger" *ngIf="isErrorRequired('id')">{{FORM_CONSTANT.REQUIRED}}</small>
+				</div>
+				<div class="form-group">
+					<label class="form-control-label">Name<small class="text-danger"> *</small></label>
+					<div class="input-group">
+						<input formControlName="title" class="form-control" type="text">
+					</div>
+					<small class="text-danger" *ngIf="isErrorRequired('title')">{{FORM_CONSTANT.REQUIRED}}</small>
+				</div>
+				<div class="form-group">
+					<label class="form-control-label">Roter Link<small class="text-danger"> *</small></label>
+					<div class="input-group">
+						<input formControlName="routerLink" class="form-control" type="text">
+					</div>
+					<small class="text-danger" *ngIf="isErrorRequired('routerLink')">{{FORM_CONSTANT.REQUIRED}}</small>
+				</div>
+				<div class="form-group">
+					<label class="form-control-label">Href<small class="text-danger"> *</small></label>
+					<div class="input-group">
+						<input formControlName="href" class="form-control" type="text">
+					</div>
+					<small class="text-danger" *ngIf="isErrorRequired('href')">{{FORM_CONSTANT.REQUIRED}}</small>
+				</div>
+			</div>
+			<div class="col-6">
+				<div class="form-group">
+					<label class="form-control-label">Parent</label>
+					<div class="input-group">
+						<input formControlName="parentId" class="form-control" type="text">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="form-control-label">Display order *</label>
+					<div class="input-group">
+						<input formControlName="displayOrder"  class="form-control" type="number">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="form-control-label">Icon *</label>
+					<div class="input-group">
+						<input  formControlName="icon" class="form-control" type="text">
+					</div>
+				</div>
+				<div class="row mt-2">
+					<div class="col-6">
+						<span class="switch switch-md">
+						<input type="checkbox" class="switch-md" formControlName="menu" id="switch-md-menu">
+						<label for="switch-md-menu">Menu</label>
+						</span>
+					</div>
+					<div class="col-6">
+						<span class="switch switch-md">
+							<input type="checkbox" class="switch-md" formControlName="status" id="switch-md-status">
+							<label for="switch-md-status">Status</label>
+						</span>
+					</div>
+					<div class="col-6 mt-2">
+						<span class="switch switch-md">
+							<input type="checkbox" class="switch-md" formControlName="target" id="switch-md-target">
+							<label for="switch-md-target">Target</label>
+						</span>
+                    </div>
+                    <div class="col-6 mt-2">
+						<span class="switch switch-md">
+							<input type="checkbox" class="switch-md" formControlName="hasSubMenu" id="switch-md-target">
+							<label for="switch-md-target">Has Sub Menu</label>
+						</span>
+					</div>
+				</div>
+			</div>
+        </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+      <div class="row col-12 pl-0 mr-0 mb-2">
+          <div class="col-6">
+              <button type="button" class="btn btn-success pull-left" (click)="entityModal.dismiss()"><i class="fa fa-arrow-circle-o-left pd-2"></i></button>
+          </div>
+          <div class="col-6">
+              <button type="submit" (click)="onSave()" [disabled]="entityForm.invalid" class="btn btn-primary pull-right"><i class="fa fa-check"></i></button>
+          </div>
+      </div>
+  </div>
+</ng-template>
+
+
+<ng-template #modalDelete>
+  <div class="modal-header">
+    <h4 style="width:100%">{{FORM_CONSTANT.TITLE_DELETE}}</h4>
+    <button type="button" class="close" aria-label="Close" (click)="modalDeleteRef.dismiss()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body text-center">
+    <h5>{{FORM_CONSTANT.CONFIRM_DELETE_MSG}}</h5>
+  </div>
+  <div class="modal-footer">
+    <div class="row col-12 pl-0 mr-0 mb-2">
+      <div class="col-6">
+        <button type="button" class="btn btn-success pull-left" (click)="modalDeleteRef.dismiss()"><i class="fa fa-arrow-circle-o-left pd-2"></i></button>
+      </div>
+      <div class="col-6">
+        <button type="button" class="btn btn-danger pull-right" (click)="onDelete()"><i class="fa fa-trash"></i></button>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #modalPermission>
+  <div class="modal-header">
+    <h4 style="width:100%">Permission</h4>
+    <button type="button" class="close" aria-label="Close" (click)="modalPermissionRef.dismiss()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body text-center">
+    <form class="form-horizontal form-label-left" novalidate #permissionForm="ngForm" (ngSubmit)="permissionForm.valid ? onSavePermission() : ''">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>
+                        Role
+                    </th>
+                    <th>
+                        Permission
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let permission of permissions">
+                    <td>
+                        {{permission.role.name}}
+                    </td>
+                    <td>
+                      <div class="row" style="margin:auto">
+                        <div class="mr-2 col-xs-2">
+                            <label>
+                                <input type="checkbox" [(ngModel)]="permission.isRead" [name]="permission.id" [ngModelOptions]="{standalone: true}"> Read
+                            </label>
+                        </div>
+                        <div class="mr-2 col-xs-2">
+                            <label>
+                                <input type="checkbox" [(ngModel)]="permission.isCreate" [name]="permission.id" name="status" [ngModelOptions]="{standalone: true}"> Create
+                            </label>
+                        </div>
+                        <div class="mr-2 col-xs-2">
+                            <label>
+                                <input type="checkbox" [(ngModel)]="permission.isUpdate" [name]="permission.id" name="status" [ngModelOptions]="{standalone: true}"> Update
+                            </label>
+                        </div>
+                        <div class="mr-2 col-xs-2">
+                            <label>
+                                <input type="checkbox" [(ngModel)]="permission.isDelete" [name]="permission.id" name="status" [ngModelOptions]="{standalone: true}"> Delete
+                            </label>
+                        </div>
+                        <div class="mr-2 col-xs-2">
+                            <label>
+                                <input type="checkbox" [(ngModel)]="permission.isGet" [name]="permission.id" name="status" [ngModelOptions]="{standalone: true}"> Get
+                            </label>
+                        </div>
+                      </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <div class="row col-12 pl-0 mr-0 mb-2">
+      <div class="col-6">
+        <button type="button" class="btn btn-success pull-left" (click)="modalPermissionRef.dismiss()"><i class="fa fa-arrow-circle-o-left pd-2"></i></button>
+      </div>
+      <div class="col-6">
+        <button type="button" class="btn btn-primary pull-right" (click)="onSavePermission()"><i class="fa fa-check"></i></button>
+      </div>
+    </div>
+  </div>
+</ng-template>
